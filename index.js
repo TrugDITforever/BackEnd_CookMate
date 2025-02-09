@@ -35,7 +35,7 @@ app.use(friendrequest_routes);
 // app.use("/minio", minio);
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
+console.log("hihihi");
 // MongoDB connection
 const uri = process.env.MONGO_URL;
 mongoose.connect(uri).then(() => {
