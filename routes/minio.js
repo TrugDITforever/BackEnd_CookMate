@@ -4,7 +4,7 @@ const router = express.Router();
 const minioClient = require("../controller/minio");
 
 const multer = require("multer");
-const upload = multer({ storage: multer.memoryStorage() }); // Lưu file vào bộ nhớ tạm thời (Buffer)
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/upload", upload.single("file"), (req, res) => {
   const file = req.file;

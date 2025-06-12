@@ -21,11 +21,11 @@ exports.fetchDataUser = (req, res) => {
 /// get all food information base on mealType
 exports.fetchDataFood = (req, res) => {
   const state = req.params;
-  foodModel.find({ mealType: state.mealType }).then((food) => {
+  foodModel.find().then((food) => {
     res.status(200).json({ foodData: food });
   });
 };
-/// get all post of user 
+/// get all post of user
 exports.fetchuserPosts = (req, res) => {
   const ownerId = new ObjectId("66146d7338795a648ebee702");
   foodModel

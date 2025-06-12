@@ -20,6 +20,8 @@ const conversation_routes = require("./routes/conversation.js");
 const message_routes = require("./routes/message.js");
 const friend_routes = require("./routes/friends.js");
 const friendrequest_routes = require("./routes/friendrequest.js");
+const logs_request = require("./routes/userLog.js");
+
 // const minio = require("./routes/minio.js");
 
 app.use(cors());
@@ -32,10 +34,10 @@ app.use(conversation_routes);
 app.use(message_routes);
 app.use(friend_routes);
 app.use(friendrequest_routes);
+app.use(logs_request);
 // app.use("/minio", minio);
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-console.log("hihihi");
 // MongoDB connection
 const uri = process.env.MONGO_URL;
 mongoose.connect(uri).then(() => {
