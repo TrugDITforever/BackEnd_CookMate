@@ -10,6 +10,12 @@ const socket = require("./controller/socket.js");
 const app = express();
 dotenv.config();
 
+const corsOptions = {
+  origin: "http://localhost:3000", // hoặc IP thiết bị di động nếu đang dùng Expo
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+};
+
 // Routes
 const userroutes = require("./routes/index.js");
 const recipe_routes = require("./routes/recipe.js");
@@ -21,6 +27,7 @@ const message_routes = require("./routes/message.js");
 const friend_routes = require("./routes/friends.js");
 const friendrequest_routes = require("./routes/friendrequest.js");
 const logs_request = require("./routes/userLog.js");
+const reviewRoutes = require("./routes/review.js");
 
 // const minio = require("./routes/minio.js");
 
@@ -35,6 +42,7 @@ app.use(message_routes);
 app.use(friend_routes);
 app.use(friendrequest_routes);
 app.use(logs_request);
+app.use(reviewRoutes);
 // app.use("/minio", minio);
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -45,6 +53,6 @@ mongoose.connect(uri).then(() => {
 });
 const server = http.createServer(app);
 const io = socket(server);
-server.listen(8080, () => {
+server.listen(8081, () => {
   console.log("Server is running on port 8080");
 });
