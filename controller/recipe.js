@@ -20,6 +20,10 @@ exports.userpostRecipe = (req, res) => {
   const newRecipe = new foodModel({
     foodName: state.foodName,
     foodImage: state.foodImage,
+    calories: state.calories, // thêm
+    level: state.level, // thêm
+    serves: state.serves, // thêm
+    mealType: state.mealType, // thêm
     description: state.description,
     ingredients: state.ingredients,
     instructions: state.instructions,
@@ -40,6 +44,10 @@ exports.userUpDatepostRecipe = (req, res) => {
   const updateRecipe = {
     foodName: state.foodName,
     foodImage: state.foodImage,
+    calories: state.calories, // thêm
+    level: state.level, // thêm
+    serves: state.serves, // thêm
+    mealType: state.mealType, // thêm
     description: state.description,
     ingredients: state.ingredients,
     instructions: state.instructions,
