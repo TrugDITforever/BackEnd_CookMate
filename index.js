@@ -21,9 +21,16 @@ const message_routes = require("./routes/message.js");
 const friend_routes = require("./routes/friends.js");
 const friendrequest_routes = require("./routes/friendrequest.js");
 const logs_request = require("./routes/userLog.js");
-
+const reviewRoutes = require("./routes/review.js");
 // const minio = require("./routes/minio.js");
-
+// const corsOptions = {
+//   origin: "http://localhost:3000",
+//   methods: "GET,POST,PUT,DELETE,OPTIONS",
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   credentials: true,
+// };
+// app.use(cors(corsOptions));
+// app.options("*", cors(corsOptions)); // xử lý preflight
 app.use(cors());
 app.use(userroutes);
 app.use(recipe_routes);
@@ -35,6 +42,7 @@ app.use(message_routes);
 app.use(friend_routes);
 app.use(friendrequest_routes);
 app.use(logs_request);
+app.use(reviewRoutes);
 // app.use("/minio", minio);
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
