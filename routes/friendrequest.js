@@ -6,7 +6,10 @@ const friendRequestController = require("../controller/friendrequest");
 router.post("/friendRequests", friendRequestController.createFriendRequest);
 
 // Lấy tất cả yêu cầu kết bạn
-router.get("/friendRequests/user/:id", friendRequestController.getAllFriendRequests);
+router.get(
+  "/friendRequests/user/:id",
+  friendRequestController.getAllFriendRequests
+);
 
 // Lấy yêu cầu kết bạn theo id
 router.get("/friendRequests/:id", friendRequestController.getFriendRequestById);
@@ -15,13 +18,22 @@ router.get("/friendRequests/:id", friendRequestController.getFriendRequestById);
 router.put("/friendRequests/:id", friendRequestController.updateFriendRequest);
 
 // Chấp nhận lời mời kết bạn
-router.put("/friendRequests/accept/:requestId", friendRequestController.acceptFriendRequest)
+router.put(
+  "/friendRequests/accept/:requestId",
+  friendRequestController.acceptFriendRequest
+);
 
 // Từ chối lời mời kết bạn
-router.put("/friendRequests/reject/:id", friendRequestController.rejectFriendRequest)
+router.put(
+  "/friendRequests/reject/:id",
+  friendRequestController.rejectFriendRequest
+);
 
 // Kiểm tra yêu cầu kết bạn
-router.get("/friendRequests/check/:receiverId", friendRequestController.checkCreateFriendRequest)
+router.get(
+  "/friendRequests/check/:receiverId",
+  friendRequestController.checkCreateFriendRequest
+);
 
 // Xóa yêu cầu kết bạn
 router.delete(
