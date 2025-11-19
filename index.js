@@ -22,7 +22,7 @@ const friend_routes = require("./routes/friends.js");
 const friendrequest_routes = require("./routes/friendrequest.js");
 const logs_request = require("./routes/userLog.js");
 const reviewRoutes = require("./routes/review.js");
-// const minio = require("./routes/minio.js");
+const minio = require("./routes/minio.js");
 // const corsOptions = {
 //   origin: "http://localhost:3000",
 //   methods: "GET,POST,PUT,DELETE,OPTIONS",
@@ -43,7 +43,7 @@ app.use(friend_routes);
 app.use(friendrequest_routes);
 app.use(logs_request);
 app.use(reviewRoutes);
-// app.use("/minio", minio);
+app.use("/minio", minio);
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // MongoDB connection

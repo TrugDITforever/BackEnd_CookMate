@@ -4,10 +4,10 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const minioClient = new Minio.Client({
-  endPoint: "minio.manportfolio.id.vn",
+  endPoint: "s3.manportfolio.id.vn",
   useSSL: true,
-  accessKey: "RapRSa9y0byhXHmfhWYd",
-  secretKey: "VSE88BczrJuSBRhSFtuEiPaOjdrCtdrp90mekHme",
+  accessKey: "hngBedbTC8i3dsXKuQGM",
+  secretKey: "o3YFZGSgz9S3J39iYn14m3aDTe0CN1G7gbugcli4",
 });
 
 minioClient.listBuckets((err, buckets) => {
