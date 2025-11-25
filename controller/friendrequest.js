@@ -26,7 +26,7 @@ exports.createFriendRequest = (req, res) => {
 // Lấy tất cả yêu cầu kết bạn
 exports.getAllFriendRequests = (req, res) => {
   const userId = req.params.id;
-  console.log(userId)
+  console.log(userId);
 
   try {
     FriendRequest.find({ receiverId: userId, status: "pending" }).then(
@@ -40,23 +40,24 @@ exports.getAllFriendRequests = (req, res) => {
 };
 
 exports.checkCreateFriendRequest = (req, res) => {
-  const {receiverId} = req.params
-  const senderId  = req.query.senderId; 
+  const { receiverId } = req.params;
+  const senderId = req.query.senderId;
   try {
-    FriendRequest.find({ senderId: senderId, receiverId: receiverId, status: "pending" }).then(
-      (requests) => {
-        if (requests.length === 0){
-          res.status(200).json({ requests: requests, success: false });
-        }
-        else {
-          res.status(200).json({ requests: requests, success: true });
-        }
+    FriendRequest.find({
+      senderId: senderId,
+      receiverId: receiverId,
+      status: "pending",
+    }).then((requests) => {
+      if (requests.length === 0) {
+        res.status(200).json({ requests: requests, success: false });
+      } else {
+        res.status(200).json({ requests: requests, success: true });
       }
-    );
+    });
   } catch (error) {
     res.status(400).json({ error: "Can't fetch friend requests" });
   }
-}
+};
 
 // Chấp nhận yêu cầu kết bạn
 // exports.acceptFriendRequest = (req, res) => {
@@ -80,10 +81,10 @@ exports.checkCreateFriendRequest = (req, res) => {
 //   }
 // };
 exports.acceptFriendRequest = (req, res) => {
-  const {requestId} = req.params;
+  const { requestId } = req.params;
   const acceptData = req.body;
   // console.log(acceptData)
-  // console.log(requestId); 
+  // console.log(requestId);
 
   try {
     FriendRequest.findByIdAndUpdate(
@@ -99,7 +100,7 @@ exports.acceptFriendRequest = (req, res) => {
             $push: { friends: new ObjectId(`${friendId}`) },
           })
           .then(() => {
-                // Đồng thời, thêm userId vào danh sách bạn bè của friendId
+            // Đồng thời, thêm userId vào danh sách bạn bè của friendId
             userModel
               .findByIdAndUpdate(friendId, {
                 $push: { friends: new ObjectId(`${userId}`) },
@@ -108,12 +109,16 @@ exports.acceptFriendRequest = (req, res) => {
                 res.status(200).json({ success: true, added: friendId });
               });
           });
-        } else {
-          res.status(404).json({ error: "Friend request not found", success: false, });
-        }
+      } else {
+        res
+          .status(404)
+          .json({ error: "Friend request not found", success: false });
+      }
     });
   } catch (error) {
-    res.status(400).json({ error: "Can't accept friend request", success: false, });
+    res
+      .status(400)
+      .json({ error: "Can't accept friend request", success: false });
   }
 };
 
@@ -174,10 +179,9 @@ exports.updateFriendRequest = (req, res) => {
   const requestId = req.params.id;
   const updatedData = req.body; // Thường bao gồm trạng thái accept/reject
 
-  try { 
-    FriendRequest
-      .findByIdAndUpdate(requestId, updatedData, { new: true })
-      .then((updatedRequest) => {
+  try {
+    FriendRequest.findByIdAndUpdate(requestId, updatedData, { new: true }).then(
+      (updatedRequest) => {
         if (updatedRequest) {
           res
             .status(200)
@@ -185,7 +189,8 @@ exports.updateFriendRequest = (req, res) => {
         } else {
           res.status(404).json({ error: "Friend request not found" });
         }
-      }); 
+      }
+    );
   } catch (error) {
     res.status(400).json({ error: "Can't update friend request" });
   }

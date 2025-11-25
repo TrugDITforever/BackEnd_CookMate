@@ -19,4 +19,6 @@ router.get(
   "/api/fetchRecipeByCollectionID/:collectionID",
   admin.fetchRecipeByCollectionID
 );
+router.delete("/collections/:collectionid", collection.deleteCollection);
+
 module.exports = router;

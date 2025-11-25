@@ -111,3 +111,36 @@ exports.checkisdaddedtoCollection = async (req, res) => {
     res.status(400).json({ success: false });
   }
 };
+exports.deleteCollection = async (req, res) => {
+  try {
+    const collectionID = req.params.collectionid;
+
+    if (!collectionID) {
+      return res.status(400).json({
+        success: false,
+        message: "Collection ID is required",
+      });
+    }
+
+    // Xóa collection
+    const deleted = await collectionModel.findByIdAndDelete(collectionID);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Collection not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Collection deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete collection error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
