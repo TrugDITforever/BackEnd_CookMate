@@ -1,5 +1,7 @@
 // controller/review.js
 const reviewModel = require("../model/reviewModel");
+const foodModel = require("../model/foodModel");
+const mongoose = require("mongoose");
 
 // Thêm review mới
 exports.createReview = async (req, res) => {
@@ -14,13 +16,34 @@ exports.createReview = async (req, res) => {
         .json({ success: false, message: "Bạn đã review món này rồi" });
     }
 
-    const review = new reviewModel({ foodId, userId, rating, comment });
-    await review.save();
+    const review = await reviewModel.create({
+      foodId,
+      userId,
+      rating,
+      comment,
+    });
+    // Cập nhật lại avgRating và ratingCount trong foodModel
+    const stats = await reviewModel.aggregate([
+      { $match: { foodId: new mongoose.Types.ObjectId(foodId) } },
+      {
+        $group: {
+          _id: "$foodId",
+          avgRating: { $avg: "$rating" },
+          ratingCount: { $sum: 1 },
+        },
+      },
+    ]);
 
-    // // populate để có luôn user name
-    // review = await review.populate("userId", "_id name");
-
-    res.status(201).json({ success: true, data: review });
+    if (stats.length > 0) {
+      await foodModel.findByIdAndUpdate(foodId, {
+        avgRating: stats[0].avgRating,
+        ratingCount: stats[0].ratingCount,
+      });
+    }
+    return res.status(201).json({
+      success: true,
+      data: review,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

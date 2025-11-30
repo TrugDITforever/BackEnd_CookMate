@@ -1,6 +1,7 @@
 const { ObjectId } = require("mongodb");
 const foodModel = require("../model/foodModel");
 const userModel = require("../model/userModel");
+const Review = require("../model/reviewModel");
 // / show food deatails when user click on
 exports.getFoodById = (req, res) => {
   const state = req.params.foodId;
@@ -75,21 +76,34 @@ exports.userLikesRecipe = async (req, res) => {
       liked: foodId,
     });
     if (isliked) {
-      userModel
-        .findByIdAndUpdate(userId, {
-          $pull: { liked: new ObjectId(`${foodId}`) },
-        })
-        .then((food) => {
-          res.status(200).json({ success: false, removed: foodId });
-        });
+      await userModel.findByIdAndUpdate(userId, {
+        $pull: { liked: new ObjectId(`${foodId}`) },
+      });
+
+      // decrement hearts count in foodModel
+      await foodModel.findByIdAndUpdate(foodId, {
+        $inc: { hearts: -1 },
+      });
+
+      return res.status(200).json({
+        success: true,
+        liked: false,
+        removed: foodId,
+      });
     } else {
-      userModel
-        .findByIdAndUpdate(userId, {
-          $push: { liked: new ObjectId(`${foodId}`) },
-        })
-        .then((food) => {
-          res.status(200).json({ success: true, added: foodId });
-        });
+      await userModel.findByIdAndUpdate(userId, {
+        $push: { liked: new ObjectId(`${foodId}`) },
+      });
+
+      await foodModel.findByIdAndUpdate(foodId, {
+        $inc: { hearts: 1 },
+      });
+
+      return res.status(200).json({
+        success: true,
+        liked: true,
+        added: foodId,
+      });
     }
   } catch (error) {
     res.status(400).json({ success: false });
@@ -159,3 +173,37 @@ exports.updateRec = async (req, res) => {
     res.status(400).json({ error: "Can't update recipe" });
   }
 };
+
+// add review and update food's avgRating and ratingCount
+// exports.addReview = async (req, res) => {
+//   try {
+//     const { foodId, userId, rating, comment } = req.body;
+
+//     const newReview = await Review.create({ foodId, userId, rating, comment });
+
+//     const result = await Review.aggregate([
+//       { $match: { foodId: new mongoose.Types.ObjectId(foodId) } },
+//       {
+//         $group: {
+//           _id: "$foodId",
+//           avgRating: { $avg: "$rating" },
+//           ratingCount: { $sum: 1 },
+//         },
+//       },
+//     ]);
+
+//     if (result.length > 0) {
+//       await Food.findByIdAndUpdate(foodId, {
+//         avgRating: result[0].avgRating,
+//         ratingCount: result[0].ratingCount,
+//       });
+//     }
+
+//     res.status(200).json({
+//       message: "Review added successfully",
+//       review: newReview,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };

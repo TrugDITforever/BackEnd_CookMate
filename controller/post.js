@@ -8,6 +8,8 @@ exports.fetchuserPostsbyId = (req, res) => {
   foodModel
     .aggregate([
       { $match: { ownerId: ownerId } },
+      { $sort: { liked: -1 } },
+
       {
         $lookup: {
           from: "users",
@@ -28,7 +30,7 @@ exports.fetchuserPostsbyId = (req, res) => {
           },
         },
       },
-      { $limit: 10 },
+      { $limit: 20 },
     ])
     .then((data) => {
       res.status(200).json({
@@ -47,6 +49,7 @@ exports.fetchUserLikedPost = (req, res) => {
         {
           $unwind: "$liked",
         },
+        { $sort: { liked: -1 } },
         {
           $lookup: {
             from: "foods",

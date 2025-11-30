@@ -16,6 +16,18 @@ const foodSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
+    avgRating: {
+      type: Number,
+      default: 0,
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+    },
+    hearts: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     versionKey: false, // Disable versioning

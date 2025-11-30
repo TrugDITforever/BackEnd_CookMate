@@ -3,19 +3,43 @@ const { ObjectId } = require("mongodb");
 const userLogModel = require("../model/user_logs");
 
 exports.postUserLog = async (req, res) => {
-  const state = req.body;
-  console.log(state);
+  const { user_id, food_id, interaction = "view" } = req.body;
+
   try {
-    const newLog = new userLogModel({
-      user_id: new ObjectId(`${state.user_id}`),
-      food_id: new ObjectId(`${state.food_id}`),
-      interaction: state.interaction ? state.interaction : "view",
+    const existingLog = await userLogModel.findOne({
+      user_id: new ObjectId(user_id),
+      food_id: new ObjectId(food_id),
+      interaction: interaction,
+    });
+
+    if (existingLog) {
+      await userLogModel.deleteOne({ _id: existingLog._id });
+
+      return res.status(200).json({
+        success: true,
+        toggled: false,
+        message: "Existing log removed",
+      });
+    }
+
+    const newLog = await userLogModel.create({
+      user_id: new ObjectId(user_id),
+      food_id: new ObjectId(food_id),
+      interaction,
       timestamp: new Date(),
     });
 
-    await newLog.save();
-    res.status(200).json({ message: "Log saved successfully", success: true });
+    return res.status(200).json({
+      success: true,
+      toggled: true,
+      message: "Log created",
+      data: newLog,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Failed to save log" + error.message });
+    console.log("Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to toggle log: " + error.message,
+    });
   }
 };

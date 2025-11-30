@@ -2,24 +2,89 @@ const { default: mongoose } = require("mongoose");
 const { ObjectId } = require("mongodb");
 
 const conversationModel = require("../model/conversations");
-exports.createConversation = (req, res) => {
-  const state = req.body;
-  const newConversation = new conversationModel({
-    participants: state.participants,
-    isGroup: state.isGroup,
-    groupAdmin: state.isGroup ? state.groupAdmin : null,
-    groupName: state.groupName,
-    lastMessage: state.lastMessage,
-  });
+const userModel = require("../model/userModel");
+
+// rời nhóm
+exports.leaveGroup = async (req, res) => {
+  const { conversationId, userId } = req.body;
 
   try {
-    newConversation.save().then((savedConversation) => {
-      res.status(200).json({ conversation: savedConversation, success: true });
-    });
+    const conversation = await conversationModel.findById(conversationId);
+
+    if (!conversation || conversation.type !== "group") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Not a group chat" });
+    }
+
+    conversation.participants = conversation.participants.filter(
+      (p) => String(p.userId) !== userId
+    );
+
+    await conversation.save();
+
+    res.status(200).json({ success: true, message: "Left group successfully" });
   } catch (error) {
-    res.status(400).json({ error: "Can't create conversation" });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+// Xóa nhóm chung
+exports.deleteGroup = async (req, res) => {
+  const { conversationId, userId } = req.body;
+
+  try {
+    const conversation = await conversationModel.findById(conversationId);
+
+    const isOwner = conversation.participants.some(
+      (p) => String(p.userId) === userId && p.role === "owner"
+    );
+
+    if (!isOwner) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
+    }
+
+    await conversationModel.findByIdAndDelete(conversationId);
+
+    res.status(200).json({ success: true, message: "Group deleted" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+// xóa private chat
+exports.deletePrivate = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await conversationModel.findByIdAndDelete(id);
+
+    res.status(200).json({ success: true, message: "Private chat deleted" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.createConversation = async (req, res) => {
+  try {
+    const { type, groupName, createdBy, participants } = req.body;
+
+    const newConversation = await conversationModel.create({
+      type: type,
+      isGroup: true,
+      groupName: groupName,
+      createdBy: createdBy,
+      participants: participants,
+      lastActivityAt: new Date(),
+    });
+
+    res.status(200).json({ success: true, conversation: newConversation });
+  } catch (error) {
+    console.log("CREATE GROUP ERROR:", error); // <- IN LỖI RA
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.getAllConversations = (req, res) => {
   try {
     conversationModel.find().then((conversations) => {
@@ -29,45 +94,72 @@ exports.getAllConversations = (req, res) => {
     res.status(400).json({ error: "Can't fetch conversations" });
   }
 };
-exports.getConversationsById = (req, res) => {
+exports.getConversationsById = async (req, res) => {
   const conversationId = req.params.conversationId;
+
   try {
-    conversationModel.findOne({ _id: conversationId }).then((conversations) => {
-      res.status(200).json({ conversations: conversations, success: true });
-    });
-  } catch (error) {
-    res.status(400).json({ error: "Can't fetch conversations" });
-  }
-};
-exports.getConversationByUserId = (req, res) => {
-  const userId = req.params.userId;
-  try {
-    conversationModel.find({ participants: userId }).then((conversations) => {
-      res.status(200).json({ conversations: conversations, success: true });
-    });
-  } catch (error) {
-    res.status(400).json({ error: "Can't fetch conversations" });
-  }
-};
-exports.updateConversation = (req, res) => {
-  const conversationId = req.params.id;
-  const updatedData = req.body;
-  try {
-    conversationModel
-      .findOneAndUpdate({ id: conversationId }, updatedData, { new: true })
-      .then((updatedConversation) => {
-        if (updatedConversation) {
-          res
-            .status(200)
-            .json({ conversation: updatedConversation, success: true });
-        } else {
-          res.status(404).json({ error: "Conversation not found" });
-        }
+    const conversation = await conversationModel
+      .findOne({ _id: conversationId })
+      .populate({
+        path: "participants.userId",
+        select: "_id name profileImage email username",
+      })
+      .populate({
+        path: "lastMessage.senderId",
+        select: "_id name profileImage username",
       });
+
+    if (!conversation) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+
+    res.status(200).json({ success: true, conversation });
   } catch (error) {
-    res.status(400).json({ error: "Can't update conversation" });
+    console.log("Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+exports.getConversationByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const conversations = await conversationModel
+      .find({
+        "participants.userId": userId,
+      })
+      .populate({
+        path: "participants.userId",
+        select: "_id name profileImage email username",
+      })
+      .sort({ lastActivityAt: -1 });
+
+    res.status(200).json({ success: true, conversations });
+  } catch (error) {
+    res.status(500).json({ success: false, error });
+  }
+};
+
+exports.updateConversation = async (req, res) => {
+  const conversationId = req.params.id;
+
+  try {
+    const updatedConversation = await conversationModel.findByIdAndUpdate(
+      conversationId,
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedConversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    res.status(200).json({ success: true, conversation: updatedConversation });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 exports.deleteConversation = (req, res) => {
   const conversationId = req.params.id;
   try {
@@ -87,28 +179,39 @@ exports.deleteConversation = (req, res) => {
   }
 };
 
+// Create private conversation if not exists
 exports.findOrCreateConversation = async (req, res) => {
-  const { userId, friendId, name } = req.body;
-  console.log(friendId);
+  const { userId, friendId } = req.body;
+
   try {
+    // tìm private conversation giữa 2 người
     let conversation = await conversationModel.findOne({
-      participants: { $all: [userId, friendId] },
+      type: "private",
+      participants: {
+        $all: [
+          { $elemMatch: { userId } },
+          { $elemMatch: { userId: friendId } },
+        ],
+      },
     });
 
     if (!conversation) {
-      conversation = new conversationModel({
-        participants: [userId, friendId],
-        groupName: name,
-        lastMessage: null,
-        updatedAt: new Date(),
+      conversation = await conversationModel.create({
+        type: "private",
+        isGroup: false,
+        participants: [
+          { userId, role: "member" },
+          { userId: friendId, role: "member" },
+        ],
+        lastActivityAt: new Date(),
       });
-      await conversation.save();
     }
 
-    res.status(200).json({ conversationId: conversation._id });
+    res.status(200).json({
+      success: true,
+      conversationId: conversation._id,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error finding or creating conversation", error });
+    res.status(500).json({ success: false, error });
   }
 };
