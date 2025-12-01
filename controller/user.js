@@ -3,6 +3,9 @@ const dotenv = require("dotenv");
 const foodModel = require("../model/foodModel");
 const userModel = require("../model/userModel");
 const collectionModel = require("../model/collectionModel");
+const friendrequest = require("../model/friendrequest");
+const mongoose = require("mongoose");
+
 const jwt = require("jsonwebtoken");
 /// user login to app
 exports.userLogin = async (req, res) => {
@@ -310,5 +313,43 @@ exports.getFriendList = (req, res) => {
       success: false,
       message: error.message, // Gửi thông báo lỗi chi tiết nếu có
     });
+  }
+};
+
+exports.removeFriend = async (req, res) => {
+  try {
+    const { userId, friendId } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(friendId)
+    ) {
+      return res.status(400).json({ success: false, message: "Invalid ID" });
+    }
+
+    // Xóa friend khỏi mỗi user
+    await userModel.findByIdAndUpdate(userId, {
+      $pull: { friends: friendId },
+    });
+
+    // await userModel.findByIdAndUpdate(friendId, {
+    //   $pull: { friends: userId },
+    // });
+
+    // Xóa mọi friendRequest giữa 2 người
+    await friendrequest.deleteMany({
+      $or: [
+        { senderId: userId, receiverId: friendId },
+        { senderId: friendId, receiverId: userId },
+      ],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Friend removed successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

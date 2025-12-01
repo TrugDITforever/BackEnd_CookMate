@@ -249,15 +249,15 @@ const { Server } = require("socket.io");
 const messageModel = require("../model/messages");
 const conversationModel = require("../model/conversations");
 
-async function getGroupMember(conversationId) {
-  try {
-    const result = await conversationModel.findOne({ _id: conversationId });
-    return result?.participants;
-  } catch (err) {
-    console.error("Error fetching group members:", err);
-    return [];
-  }
-}
+// async function getGroupMember(conversationId) {
+//   try {
+//     const result = await conversationModel.findOne({ _id: conversationId });
+//     return result?.participants;
+//   } catch (err) {
+//     console.error("Error fetching group members:", err);
+//     return [];
+//   }
+// }
 
 async function CreateNewMess(newMessage) {
   try {
@@ -278,10 +278,12 @@ const socketSetup = (server) => {
 
   io.on("connection", (socket) => {
     console.log("🟢 Socket connected:", socket.id);
-
-    // ==============================
+    // REGISTER USER JOIN PERSONAL ROOM
+    socket.on("register_user", (userId) => {
+      socket.join(`user_${userId}`);
+      console.log(`👤 User ${userId} joined personal room: user_${userId}`);
+    });
     // USER JOIN A CONVERSATION ROOM
-    // ==============================
     socket.on("user", (userId, conversationId) => {
       socket.join(conversationId);
       console.log(`👤 User ${userId} joined room: ${conversationId}`);
@@ -346,7 +348,23 @@ const socketSetup = (server) => {
         console.error("Error deleting message:", err);
       }
     });
-
+    // send friend request
+    socket.on("send_friend_request", ({ senderId, receiverId }) => {
+      io.to(`user_${receiverId}`).emit("friend_request_received", {
+        senderId,
+        receiverId,
+        createdAt: new Date(),
+      });
+      console.log(`🤝 Friend request sent to user_${receiverId}`);
+    });
+    socket.on("accept_friend_request", ({ senderId, receiverId }) => {
+      io.to(`user_${receiverId}`).emit("friend_request_accepted", {
+        senderId,
+        receiverId,
+        createdAt: new Date(),
+      });
+      console.log(`🤝 Friend request sent to user_${receiverId}`);
+    });
     // ==============================
     // VIDEO CALL EVENTS (OFFER / ANSWER / CANDIDATE)
     // ==============================

@@ -103,12 +103,13 @@ router.get("/api/getAlluser", admin.fetchDataUser);
 router.get("/api/searchRecipe", user.searchingRecipe);
 /// get user by id
 router.get("/api/getUserById/:userid", user.getUserById);
-
+router.get("/api/users/:userId/recommend", admin.recommendFriends);
 /// addfriend
 router.post("/api/user/addfriend", user.addfriend);
 // get user info by id
 router.get("/api/user/:id", user.getUserInfoById);
 router.get("/api/user/friendslist/:id", user.getUserFriends);
 router.get("/api/user/friends/:id", user.getFriendList);
-
+// delete friend
+router.delete("/friends/remove/:userId/:friendId", user.removeFriend);
 module.exports = router;

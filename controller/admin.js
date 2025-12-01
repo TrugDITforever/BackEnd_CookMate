@@ -136,3 +136,33 @@ exports.fetchRecipeByCollectionID = async (req, res) => {
     });
   }
 };
+exports.recommendFriends = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const currentUser = await userModel.findById(userId).lean();
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Những id cần loại bỏ: bản thân + friend list hiện tại
+    const excludeIds = [userId, ...currentUser.friends];
+
+    // Lấy những user KHÔNG thuộc excludeIds
+    const recommend = await userModel
+      .find({
+        _id: { $nin: excludeIds },
+      })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      recommend,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
