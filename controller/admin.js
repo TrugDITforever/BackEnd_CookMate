@@ -25,12 +25,33 @@ exports.fetchDataFood = (req, res) => {
     res.status(200).json({ foodData: food });
   });
 };
+exports.fetchDataFoodPopular = (req, res) => {
+  const state = req.params;
+  foodModel
+    .find()
+    .sort({ hearts: -1 })
+    .then((food) => {
+      res.status(200).json({ foodData: food });
+    });
+};
+exports.fetchDataFoodRating = (req, res) => {
+  const state = req.params;
+  foodModel
+    .find()
+    .sort({ avgRating: -1 })
+    .then((food) => {
+      res.status(200).json({ foodData: food });
+    });
+};
 /// get all post of user
 exports.fetchuserPosts = (req, res) => {
-  const ownerId = new ObjectId("66146d7338795a648ebee702");
+  const skip = parseInt(req.query.skip) || 0;
+  const limit = parseInt(req.query.limit) || 20;
   foodModel
     .aggregate([
       // { $match: {} },
+      { $skip: skip },
+      { $limit: limit },
       {
         $lookup: {
           from: "users",
@@ -39,11 +60,14 @@ exports.fetchuserPosts = (req, res) => {
           as: "userpost",
         },
       },
+
       {
         $project: {
           _id: 1,
           foodName: 1,
           foodImage: 1,
+          hearts: 1,
+          avgRating: 1,
           userpost: {
             _id: 1,
             username: 1,
@@ -56,6 +80,8 @@ exports.fetchuserPosts = (req, res) => {
     .then((data) => {
       res.status(200).json({
         postData: data,
+        nextSkip: skip + limit,
+        hasMore: data.length === limit,
       });
     });
 };

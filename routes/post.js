@@ -9,4 +9,6 @@ router.get("/api/fetchUserPostById/:userId", post.fetchuserPostsbyId);
 router.get("/api/fetchUserLikedPostById/:userId", post.fetchUserLikedPost);
 /// get all post belong to user
 router.get("/api/fetchUserposts", admin.fetchuserPosts);
+router.post("/seed/random-ratings", post.randomizeRatings);
+
 module.exports = router;

@@ -8,44 +8,50 @@ exports.createReview = async (req, res) => {
   try {
     const { foodId, userId, rating, comment } = req.body;
 
-    // Kiểm tra xem user đã review món này chưa
+    // Check duplicate review
     const existing = await reviewModel.findOne({ foodId, userId });
     if (existing) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Bạn đã review món này rồi" });
+      return res.status(400).json({
+        success: false,
+        message: "Bạn đã review món này rồi",
+      });
     }
 
+    // Create review
     const review = await reviewModel.create({
       foodId,
       userId,
       rating,
       comment,
     });
-    // Cập nhật lại avgRating và ratingCount trong foodModel
-    const stats = await reviewModel.aggregate([
-      { $match: { foodId: new mongoose.Types.ObjectId(foodId) } },
-      {
-        $group: {
-          _id: "$foodId",
-          avgRating: { $avg: "$rating" },
-          ratingCount: { $sum: 1 },
-        },
-      },
-    ]);
 
-    if (stats.length > 0) {
-      await foodModel.findByIdAndUpdate(foodId, {
-        avgRating: stats[0].avgRating,
-        ratingCount: stats[0].ratingCount,
-      });
-    }
+    // Get old stats from foodModel
+    const food = await foodModel.findById(foodId);
+    if (!food)
+      return res
+        .status(404)
+        .json({ success: false, message: "Food not found" });
+
+    const oldAvg = food.avgRating || 0;
+    const oldCount = food.ratingCount || 0;
+
+    // NEW VALUES:
+    const newCount = oldCount + 1;
+    const newAvg = (oldAvg * oldCount + rating) / newCount;
+    const roundedAvg = Math.round(newAvg * 10) / 10;
+
+    // Update foodModel with new stats
+    await foodModel.findByIdAndUpdate(foodId, {
+      avgRating: roundedAvg,
+      ratingCount: newCount,
+    });
+
     return res.status(201).json({
       success: true,
       data: review,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 

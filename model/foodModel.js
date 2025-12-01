@@ -31,6 +31,7 @@ const foodSchema = new mongoose.Schema(
   },
   {
     versionKey: false, // Disable versioning
+    timestamps: true,
   }
 );
 
