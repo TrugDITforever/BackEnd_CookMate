@@ -43,7 +43,7 @@ app.use(friend_routes);
 app.use(friendrequest_routes);
 app.use(logs_request);
 app.use(reviewRoutes);
-app.use("/minio", minio);
+// app.use("/minio", minio);
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // MongoDB connection

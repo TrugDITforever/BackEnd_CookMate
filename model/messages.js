@@ -6,9 +6,10 @@ const messagesSchema = new mongoose.Schema(
     senderId: String,
     text: String,
     image: String,
+    postId: String,
     createdAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 const messageModel = new mongoose.model("messages", messagesSchema);
 module.exports = messageModel;

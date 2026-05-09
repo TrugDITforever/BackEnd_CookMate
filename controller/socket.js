@@ -297,20 +297,30 @@ const socketSetup = (server) => {
     socket.on("send_message", async (data) => {
       const { from, content, conversationId, type } = data;
 
-      const newMessage =
-        type === "image"
-          ? new messageModel({
-              conversationId,
-              senderId: from,
-              image: content,
-              type: "image",
-            })
-          : new messageModel({
-              conversationId,
-              senderId: from,
-              text: content,
-              type: "text",
-            });
+      let newMessage;
+
+      if (type === "image") {
+        newMessage = new messageModel({
+          conversationId,
+          senderId: from,
+          image: content,
+          type: "image",
+        });
+      } else if (type === "post") {
+        newMessage = new messageModel({
+          conversationId,
+          senderId: from,
+          postId: content,
+          type: "post",
+        });
+      } else {
+        newMessage = new messageModel({
+          conversationId,
+          senderId: from,
+          text: content,
+          type: "text",
+        });
+      }
 
       const saved = await CreateNewMess(newMessage);
       if (!saved) return;
@@ -325,7 +335,7 @@ const socketSetup = (server) => {
 
       if (type === "image") payload.image = content;
       if (type === "text") payload.text = content;
-
+      if (type === "post") payload.postId = content;
       // Broadcast to everyone in room
       io.to(conversationId).emit("send_message", payload);
 
@@ -342,7 +352,7 @@ const socketSetup = (server) => {
         io.to(conversationId).emit("message_deleted", { messageId });
 
         console.log(
-          `🧹 Message ${messageId} deleted in room ${conversationId}`
+          `🧹 Message ${messageId} deleted in room ${conversationId}`,
         );
       } catch (err) {
         console.error("Error deleting message:", err);
@@ -375,7 +385,7 @@ const socketSetup = (server) => {
       socket.to(conversationId).emit("userJoined", { userId });
 
       const clients = Array.from(
-        io.sockets.adapter.rooms.get(conversationId) || []
+        io.sockets.adapter.rooms.get(conversationId) || [],
       );
       io.to(conversationId).emit("currentUsers", { users: clients });
     });

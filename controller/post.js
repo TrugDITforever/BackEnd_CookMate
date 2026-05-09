@@ -34,6 +34,8 @@ exports.fetchuserPostsbyId = async (req, res) => {
           _id: 1,
           foodName: 1,
           foodImage: 1,
+          avgRating: 1,
+          hearts: 1,
           createdAt: 1,
           userpost: {
             _id: 1,
@@ -81,6 +83,9 @@ exports.fetchUserLikedPost = (req, res) => {
           $project: {
             _id: { $arrayElemAt: ["$userpost._id", 0] },
             foodImage: { $arrayElemAt: ["$userpost.foodImage", 0] },
+            foodName: { $arrayElemAt: ["$userpost.foodName", 0] },
+            avgRating: { $arrayElemAt: ["$userpost.avgRating", 0] },
+            hearts: { $arrayElemAt: ["$userpost.hearts", 0] },
           },
         },
         // { $limit: 20 },
